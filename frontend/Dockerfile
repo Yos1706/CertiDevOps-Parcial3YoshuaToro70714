@@ -25,7 +25,7 @@ RUN addgroup -g 1001 node \
 COPY --from=build /app/build /usr/share/nginx/html
 
 # Copy custom Nginx configuration (assuming you have one, or use default)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Switch to non-root user
 # Note: Nginx usually runs as root, so we ensure the entrypoint is ready for the user change
