@@ -43,4 +43,4 @@ COPY --from=builder /app ./
 EXPOSE 5000
 
 # Línea CRÍTICA corregida: Usar index.js como punto de entrada
-CMD ["node", "server.js"]
+CMD sh -c "sleep 5 && node server.js"
