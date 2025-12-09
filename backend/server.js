@@ -54,7 +54,7 @@ app.get('/db-test', async (req, res) => {
 
 // --- 3. INICIO DEL SERVIDOR ---
 connectToDatabase().then(() => {
-  app.listen(port, () => {
-    console.log(`🚀 Servidor Express escuchando en http://localhost:${port}`);
+  app.listen(port, (0.0.0.0) => {
+    console.log(`🚀 Servidor Express escuchando en http://0.0.0.0:${port}`);
   });
 });
