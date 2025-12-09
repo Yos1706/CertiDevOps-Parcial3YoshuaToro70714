@@ -1,17 +1,11 @@
 name: CI/CD Pipeline - Docker & EC2
 
-# ----------------------------------------------------
-# 1. TRIGGERS
-# ----------------------------------------------------
 on:
   push:
     branches:
       - main
   workflow_dispatch:
 
-# ----------------------------------------------------
-# 2. VARIABLES DE ENTORNO
-# ----------------------------------------------------
 env:
   DOCKER_IMAGE_BACKEND: my-backend-api
   DOCKER_IMAGE_FRONTEND: my-frontend-spa
@@ -98,7 +92,6 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           
-          # Indentación corregida para el error de 'A mapping was not expected'
           env: 
             DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
             DOCKER_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
