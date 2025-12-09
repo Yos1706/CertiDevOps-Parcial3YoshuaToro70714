@@ -18,7 +18,7 @@ env:
   
 jobs:
   # ----------------------------------------------------
-  # JOB 1: BUILD & TEST (Debe pasar primero)
+  # JOB 1: BUILD & TEST
   # ----------------------------------------------------
   build-and-test:
     runs-on: ubuntu-latest
@@ -44,10 +44,9 @@ jobs:
           # npm test
           
   # ----------------------------------------------------
-  # JOB 2: BUILD & PUSH DOCKER IMAGES (Contenerización)
+  # JOB 2: BUILD & PUSH DOCKER IMAGES
   # ----------------------------------------------------
   build-and-push:
-    # 🚨 FORZANDO EJECUCIÓN (IGNORA NEEDS/ÉXITO PREVIO)
     runs-on: ubuntu-latest
     if: always() 
     steps:
@@ -84,10 +83,9 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE_FRONTEND }}:latest
 
   # ----------------------------------------------------
-  # JOB 3: DEPLOY TO EC2 (Despliegue con SSH)
+  # JOB 3: DEPLOY TO EC2
   # ----------------------------------------------------
   deploy:
-    # 🚨 FORZANDO EJECUCIÓN (IGNORA NEEDS/ÉXITO PREVIO)
     runs-on: ubuntu-latest
     environment: production
     if: always() 
@@ -100,12 +98,12 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           
-          # PASAMOS LAS CREDENCIALES DE DOCKERHUB COMO VARIABLES DE ENTORNO
-          env:
+          # Indentación corregida para el error de 'A mapping was not expected'
+          env: 
             DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
             DOCKER_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
             
-          script: |
+          script: | 
             echo "Starting deployment script on EC2..."
             
             # 2. Login a Docker Hub en la EC2
