@@ -65,6 +65,12 @@ jobs:
       - name: Save Images as Artifact
         # Los nombres de las imágenes deben coincidir con las generadas por docker-compose
         run: sudo docker save certidevops-parcial2yoshuatoro70714_backend certidevops-parcial2yoshuatoro70714_frontend -o images.tar
+
+        # === NUEVO PASO CRÍTICO: CAMBIAR PROPIETARIO ===
+      - name: Change Artifact Ownership
+        # El comando 'chown' cambia el propietario al usuario del runner (UID 1001)
+        run: sudo chown $USER:$USER images.tar
+      # ==============================================
         
       - name: Upload Images Artifact
         uses: actions/upload-artifact@v4
