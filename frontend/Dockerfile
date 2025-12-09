@@ -22,7 +22,7 @@ RUN addgroup -g 1001 node \
     && adduser -u 1001 -G node -s /bin/sh -D node
 
 # Copy build output from the build stage
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/build /usr/share/nginx/html
 
 # Copy custom Nginx configuration (assuming you have one, or use default)
 # COPY nginx.conf /etc/nginx/conf.d/default.conf
