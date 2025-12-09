@@ -50,9 +50,9 @@ jobs:
   # JOB 2: BUILD & PUSH DOCKER IMAGES (Contenerización)
   # ----------------------------------------------------
   build-and-push:
-    needs: build-and-test # Mantiene la dependencia de secuencia
+    # ❌ ELIMINADA LA DEPENDENCIA 'needs: build-and-test'
     runs-on: ubuntu-latest
-    if: always() # 👈 AÑADIDO: Fuerza la ejecución del Job si el anterior terminó (éxito o fallo)
+    if: always() # 🚨 FORZANDO EJECUCIÓN 🚨
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -91,10 +91,10 @@ jobs:
   # JOB 3: DEPLOY TO EC2 (Despliegue con SSH)
   # ----------------------------------------------------
   deploy:
-    needs: build-and-push
+    # ❌ ELIMINADA LA DEPENDENCIA 'needs: build-and-push'
     runs-on: ubuntu-latest
     environment: production
-    if: always() # 👈 AÑADIDO: Fuerza la ejecución del Job si el anterior terminó
+    if: always() # 🚨 FORZANDO EJECUCIÓN 🚨
     
     steps:
       - name: Deploy via SSH to EC2
@@ -104,7 +104,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           
-          # ✅ CORRECCIÓN: PASAMOS LAS CREDENCIALES DE DOCKERHUB COMO VARIABLES DE ENTORNO
+          # PASAMOS LAS CREDENCIALES DE DOCKERHUB COMO VARIABLES DE ENTORNO
           env:
             DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
             DOCKER_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
