@@ -1,0 +1,106 @@
+# .github/workflows/deploy.yml
+name: CI/CD Pipeline - Build and Deploy to EC2
+
+# Se ejecuta en push a 'main' y también se puede ejecutar manualmente
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  # Host y Usuario para SSH (usa los secrets configurados)
+  SSH_USER: ubuntu
+  # Directorio donde se ejecutará docker-compose en la EC2
+  DEPLOY_PATH: ~/CertiDevOps-Parcial2YoshuaToro70714
+
+jobs:
+
+  # ===============================================
+  # JOB 1: INSTALACIÓN Y VERIFICACIÓN
+  # ===============================================
+  ci-setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' 
+          
+      - name: Install Backend Dependencies
+        run: npm install
+        working-directory: ./backend
+
+      - name: Install Frontend Dependencies
+        run: npm install
+        working-directory: ./frontend
+
+  # ===============================================
+  # JOB 2: CONSTRUIR IMÁGENES DOCKER
+  # ===============================================
+  build-images:
+    needs: [ci-setup] # Depende de que la instalación inicial pase
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      # Construye las imágenes usando el docker-compose.yml
+      # Esto aplica los Multistage Builds del Dockerfile del frontend
+      - name: Build Docker Images
+        run: sudo docker-compose build
+
+      # Guardar las imágenes construidas en un archivo .tar
+      # Los nombres de las imágenes deben coincidir con las generadas por docker-compose
+      - name: Save Images as Artifact
+        run: sudo docker save certidevops-parcial2yoshuatoro70714_backend certidevops-parcial2yoshuatoro70714_frontend -o images.tar
+        
+      # Subir el archivo .tar a GitHub como artefacto
+      - name: Upload Images Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-images
+          path: images.tar
+          
+  # ===============================================
+  # JOB 3: DEPLOY A EC2 (Usando SSH)
+  # ===============================================
+  deploy:
+    needs: [build-images] # Depende de que las imágenes se construyan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Docker Images Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-images
+          path: .
+          
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ env.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Conectado al servidor EC2..."
+            
+            # 1. Navegar al directorio y actualizar código (necesario por si docker-compose.yml cambia)
+            cd ${{ env.DEPLOY_PATH }}
+            git pull
+
+            # 2. Detener y remover servicios viejos
+            echo "Deteniendo contenedores viejos..."
+            sudo docker-compose down
+
+            # 3. Cargar las nuevas imágenes desde el artefacto transferido
+            echo "Cargando nuevas imágenes desde images.tar..."
+            sudo docker load -i images.tar
+
+            # 4. Levantar los servicios con las imágenes recién cargadas (recrea solo si es necesario)
+            echo "Desplegando nuevos contenedores..."
+            sudo docker-compose up -d
+            
+            echo "Despliegue completado. Verificar en http://${{ secrets.EC2_HOST }}/"
