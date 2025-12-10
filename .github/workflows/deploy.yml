@@ -29,7 +29,6 @@ jobs:
         with:
           node-version: '20'
           
-      # Se asume que aquí irían las pruebas unitarias (run: npm test)
           
       - name: Install Backend Dependencies
         run: npm install
@@ -39,13 +38,12 @@ jobs:
         run: npm install
         working-directory: ./frontend
         
-      # (Este job puede ser opcional si no tienes tests, pero es buena práctica)
 
   # ===============================================
   # JOB 2: CONSTRUIR Y SUBIR IMÁGENES (PUSH a Docker Hub)
   # ===============================================
   build-and-push:
-    # Necesita que el setup haya terminado (si usas tests, que pasen)
+    # Necesita que el setup haya terminado 
     needs: [ci-setup] 
     runs-on: ubuntu-latest
     steps:
@@ -59,7 +57,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           
-      # 🚨 IMPORTANTE: Se usa la variable DOCKERHUB_USERNAME para el tag de la imagen
+      # IMPORTANTE: Se usa la variable DOCKERHUB_USERNAME para el tag de la imagen
       # Esto asegura que la imagen sea tageada como "usuario/repo:tag"
 
       - name: 2. 🐋 Construir y Subir Imagen del Frontend
@@ -109,7 +107,6 @@ jobs:
           echo 'Deteniendo contenedores viejos...'
           sudo docker-compose down -v && 
 
-          # 🚨 CAMBIO CRÍTICO: Descargar las imágenes del Registry
           echo 'Descargando nuevas imágenes desde Docker Hub...'
           sudo docker-compose pull && 
 
