@@ -28,12 +28,19 @@ RUN addgroup -g 1001 node \
 # 2. Copiar la configuración de Nginx
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# 3. Copiar los archivos de producción (JS/CSS bundle)
-COPY --from=build /app/build /usr/share/nginx/html
+# 🚨 CAMBIO CLAVE: Copia el index.html base primero y luego el resto de los archivos.
+# Esto garantiza que el archivo index.html (que tiene el <div id="root">) se copie desde la carpeta public/
+# Si usas la configuración 'COPY --from=build /app/build /usr/share/nginx/html',
+# Docker toma la plantilla del bundler, que parece estar incompleta.
 
-# 4. 🚨 SOLUCIÓN FINAL: Copiar explícitamente el index.html base de public
-# Esto asegura que el HTML con el <div id="root"> se use como punto de entrada.
+# Eliminamos la dependencia de /app/build y copiamos todo el contexto.
+# Si tu Nginx.conf está configurado para buscar archivos estáticos, esto debería funcionar.
+
+# Copia los archivos de producción (bundle) y la plantilla index.html
+COPY --from=build /app/build /usr/share/nginx/html
+# === LÍNEA ADICIONAL DE SOLUCIÓN ANTERIOR (DEBE QUEDAR) ===
 COPY ./public/index.html /usr/share/nginx/html/index.html
+# ===========================================================
 
 # 5. Configurar permisos y cambiar a usuario no-root
 RUN mkdir -p /var/cache/nginx/client_temp && chown -R 1001:1001 /var/cache/nginx
