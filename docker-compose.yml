@@ -5,6 +5,7 @@ services:
   # 1. SERVICIO DE BASE DE DATOS (POSTGRESQL)
   # --------------------
   db:
+    # La imagen oficial sigue usando la clave 'image'
     image: postgres:15-alpine
     container_name: postgres_db
     restart: always
@@ -13,31 +14,30 @@ services:
       POSTGRES_PASSWORD: password_segura
       POSTGRES_DB: app_db
     volumes:
+      # El volumen nombrado asegura la persistencia
       - postgres_data:/var/lib/postgresql/data
     ports:
+      # Puerto de DB expuesto solo para pruebas en desarrollo. En producción, el SG lo bloquea.
       - "5432:5432"
 
   # --------------------
   # 2. SERVICIO DE BACKEND (API)
   # --------------------
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    # 🚨 CAMBIO CRÍTICO: Reemplaza 'build' por 'image' de Docker Hub
+    # Reemplaza [TU_DOCKERHUB_USERNAME] por tu nombre de usuario real
+    image: yostor172025/my-backend-api:latest
     container_name: backend_api
     restart: always
     ports:
-      - "5000:5000"  # Mantiene el mapeo 5000:5000 para acceso directo al API (http://EC2_IP:5000)
+      - "5000:5000"
     environment:
-      NODE_ENV: development
-      
-      # Variables de DB para el backend
-      POSTGRES_USER: user 
+      NODE_ENV: production # Cambiamos a 'production' en el entorno de despliegue
+      POSTGRES_USER: user
       POSTGRES_PASSWORD: password_segura
-      POSTGRES_DB: app_db 
-      DB_HOST: db 
-      DB_PORT: 5432 
-      
+      POSTGRES_DB: app_db
+      DB_HOST: db
+      DB_PORT: 5432
     depends_on:
       - db
 
@@ -45,16 +45,15 @@ services:
   # 3. SERVICIO DE FRONTEND (SPA)
   # --------------------
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    # 🚨 CAMBIO CRÍTICO: Reemplaza 'build' por 'image' de Docker Hub
+    # Reemplaza [TU_DOCKERHUB_USERNAME] por tu nombre de usuario real
+    image: yostor172025/my-frontend-spa:latest
     container_name: frontend_spa
     restart: always
     ports:
-      - "80:80" # CORRECCIÓN: Nginx escucha en el 80
+      - "80:80"
     environment:
-      # ✅ CORRECCIÓN 2: Usa el nombre del servicio 'backend' para la comunicación interna de Docker.
-      REACT_APP_API_URL: http://backend:5000 
+      REACT_APP_API_URL: http://backend:5000
     depends_on:
       - backend
 
