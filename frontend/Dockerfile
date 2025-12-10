@@ -1,4 +1,6 @@
-# Stage 1: Build the application
+# ==============================================================
+# STAGE 1: BUILD (Compila la aplicación React)
+# ==============================================================
 FROM node:20-alpine AS build
 
 # Create app directory
@@ -6,29 +8,34 @@ WORKDIR /app
 
 # Copy ALL files necessary for the build now (including src and public)
 # Esto invalida la caché si cualquier archivo cambia
-COPY . .  
+COPY . .
 
 # Install dependencies
 RUN npm install
 
-# Build the frontend 
+# Build the frontend
 RUN npm run build
 
-# Stage 2: Serve the application with Nginx (Lightweight)
+# ==============================================================
+# STAGE 2: SERVE (Nginx)
+# ==============================================================
 FROM nginx:alpine
 
-# Create non-root user (UID 1001) for security, necessary for volume mounts in docker-compose
+# 1. Seguridad: Crear usuario no-root (UID 1001)
 RUN addgroup -g 1001 node \
     && adduser -u 1001 -G node -s /bin/sh -D node
 
-# Copy build output from the build stage
-COPY --from=build /app/build /usr/share/nginx/html
-
-# Copy custom Nginx configuration (assuming you have one, or use default)
+# 2. Copiar la configuración de Nginx
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Switch to non-root user
-# Note: Nginx usually runs as root, so we ensure the entrypoint is ready for the user change
+# 3. Copiar los archivos de producción (JS/CSS bundle)
+COPY --from=build /app/build /usr/share/nginx/html
+
+# 4. 🚨 SOLUCIÓN FINAL: Copiar explícitamente el index.html base de public
+# Esto asegura que el HTML con el <div id="root"> se use como punto de entrada.
+COPY ./public/index.html /usr/share/nginx/html/index.html
+
+# 5. Configurar permisos y cambiar a usuario no-root
 RUN mkdir -p /var/cache/nginx/client_temp && chown -R 1001:1001 /var/cache/nginx
 USER node
 
