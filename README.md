@@ -40,3 +40,4 @@ URL Pública de Producción: http://18.188.245.210/
 Para verificar el estado de los servicios en producción (EC2):
 
 Verificación del Backend (API): http://18.188.245.210:5000/api/status
+.
