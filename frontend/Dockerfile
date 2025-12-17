@@ -1,45 +1,30 @@
-# ==============================================================
-# STAGE 1: BUILD (Compila la aplicación React)
-# ==============================================================
+# STAGE 1: BUILD
 FROM node:20-alpine AS build
-
-# Create app directory
 WORKDIR /app
-
-# Copy ALL files necessary for the build now (including src and public)
-# Esto invalida la caché si cualquier archivo cambia
-COPY . .
-
-# Install dependencies
+COPY package*.json ./
 RUN npm install
-
-# Build the frontend
+COPY . .
 RUN npm run build
 
-# ==============================================================
 # STAGE 2: SERVE (Nginx)
-# ==============================================================
 FROM nginx:alpine
 
-# 1. Seguridad: Crear usuario no-root (UID 1001)
-RUN addgroup -g 1001 node \
-    && adduser -u 1001 -G node -s /bin/sh -D node
+# 1. Configurar usuario no-root para seguridad
+RUN addgroup -g 1001 node && adduser -u 1001 -G node -s /bin/sh -D node
 
-# 2. Copiar la configuración de Nginx
+# 2. Copiar configuración de Nginx
 COPY nginx.conf /etc/nginx/nginx.conf
 
-
-# Copia los archivos de producción (bundle) y la plantilla index.html
+# 3. COPIAR SOLO LA CARPETA BUILD (No sobreescribas el index.html después)
 COPY --from=build /app/build /usr/share/nginx/html
-COPY ./public/index.html /usr/share/nginx/html/index.html
-# ===========================================================
 
-# 5. Configurar permisos y cambiar a usuario no-root
-RUN mkdir -p /var/cache/nginx/client_temp && chown -R 1001:1001 /var/cache/nginx
+# 4. Ajustar permisos para que el usuario 'node' pueda leer los archivos y manejar logs
+RUN touch /tmp/nginx.pid && \
+    chown -R node:node /tmp/nginx.pid /usr/share/nginx/html /var/cache/nginx /var/log/nginx
+
 USER node
 
-# Expose the application port
-EXPOSE 80
+# Cambiamos a 8080 porque los usuarios no-root no pueden abrir el puerto 80 en Linux
+EXPOSE 8080
 
-# Command to run Nginx
 CMD ["nginx", "-g", "daemon off;"]
