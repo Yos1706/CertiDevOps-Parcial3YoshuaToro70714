@@ -1,7 +1,20 @@
 global:
-  scrape_interval: 15s
+  scrape_interval: 15s # El intervalo requerido para recolectar métricas cada X segundos
+  evaluation_interval: 15s
 
 scrape_configs:
+  # 1. Monitoreo de la Instancia EC2 (CPU, RAM, Disco)
   - job_name: 'node-exporter'
     static_configs:
       - targets: ['node-exporter:9100']
+
+  # 2. Auto-monitoreo de Prometheus
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # 3. Monitoreo de Contenedores (Opcional pero recomendado para el 25%)
+  # Si decides añadir el servicio 'cadvisor' a tu docker-compose, descomenta esto:
+  # - job_name: 'cadvisor'
+  #   static_configs:
+  #     - targets: ['cadvisor:8080']
