@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: password_segura
       POSTGRES_DB: app_db
     volumes:
-      - postgres_data:/var/lib/postgresql/data # Persistencia obligatoria
+      - postgres_data:/var/lib/postgresql/data 
     networks:
       - app-network
 
@@ -39,7 +39,7 @@ services:
     container_name: frontend_spa
     restart: always
     ports:
-      - "80:8080" # Mapeo corregido para usuario no-root
+      - "80:8080" 
     depends_on:
       - backend
     networks:
@@ -104,9 +104,9 @@ services:
     container_name: grafana
     restart: unless-stopped
     ports:
-      - "3000:3000" # Puerto requerido para evaluación
+      - "3000:3000" 
     volumes:
-      - grafana_data:/var/lib/grafana # Persistencia de Dashboards
+      - grafana_data:/var/lib/grafana 
     networks:
       - app-network
 
